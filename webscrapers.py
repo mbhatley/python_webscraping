@@ -124,7 +124,6 @@ class WebScraper:
 
                 try:
                     tag = [x.text for x in data]
-
                     tag_content = " ".join(tag)
 
                     article_content = tag_content
@@ -139,9 +138,7 @@ class WebScraper:
                 time.sleep(randint(1, 4))
 
         tc_contents = pd.DataFrame({"href": article_hrefs, "content": article_contents})
-
         tech_crunch_contents = pd.merge(left=df, right=tc_contents, left_on='href', right_on='href')
-
         tech_crunch_contents['date'] = pd.to_datetime(tech_crunch_contents['date'])
 
         return tech_crunch_contents
@@ -153,7 +150,6 @@ class WebScraper:
         """
 
         original_start_date = self.start_date
-
         # Create lists to store scraped information for the data frame
         cnn_dates, cnn_titles, cnn_hrefs = [], [], []
 
@@ -186,16 +182,13 @@ class WebScraper:
                 cnn_hrefs.append(cnn_href)
 
             self.start_date = pd.to_datetime(self.start_date) + timedelta(days=1)
-
             self.start_date = self.start_date.strftime('%Y-%m-%d')
 
             time.sleep(randint(1, 5))
 
         cnn_links = pd.DataFrame({"date": cnn_dates, "source": "CNN",
                                   "href": cnn_hrefs, "title": cnn_titles})
-
         cnn_links['date'] = pd.to_datetime(cnn_links['date'])
-
         self.start_date = original_start_date
 
         return cnn_links
@@ -220,12 +213,10 @@ class WebScraper:
 
             else:
                 soup = bs4.BeautifulSoup(response.content, "lxml")
-
                 data = soup.find("div", {"class": "article__content"})
 
                 try:
                     tag = [x.text for x in data.select("p")]
-
                     tag_content = " ".join(tag)
 
                     cnn_content = tag_content
@@ -238,9 +229,7 @@ class WebScraper:
                     continue
 
         cnn_df = pd.DataFrame({"href": cnn_hrefs, "content": cnn_contents})
-
         cnn_contents = pd.merge(left=df, right=cnn_df, left_on='href', right_on='href')
-
         cnn_contents['date'] = pd.to_datetime(cnn_contents['date'])
 
         return cnn_contents
@@ -266,11 +255,9 @@ class WebScraper:
             date.append(the_date)
 
             self.start_date = pd.to_datetime(self.start_date) + timedelta(days=1)
-
             self.start_date = self.start_date.strftime('%Y-%m-%d')
 
             # time.sleep(randint(1,2))
-
             wall_street_journal_pages = pd.DataFrame({"date": date, "url": urls})
 
         for date, url in zip(wall_street_journal_pages['date'], wall_street_journal_pages['url']):
@@ -294,9 +281,7 @@ class WebScraper:
         """
 
         original_start_date = self.start_date
-
         article_dates, article_titles, article_hrefs = [], [], []
-
         links = self.wsj_website()
 
         for (date, url) in zip(links['date'], links['href']):
@@ -347,29 +332,22 @@ class WebScraper:
         driver.get("https://www.wsj.com")
 
         time.sleep(10)
-
         article_contents, article_hrefs = [], []
-
         original_window = driver.current_window_handle
 
         for link in df[colname]:
             url = link
 
             driver.execute_script("window.open('');")
-
             driver.switch_to.window(driver.window_handles[0])
-
             driver.get(url)
-
             soup = bs4.BeautifulSoup(driver.page_source, "lxml")
 
             data = soup.find("section", {"class": "ef4qpkp0 css-uouibe-Container etunnkc23"})
 
             try:
                 tag = [x.text for x in data.select("p")]
-
                 tag = tag[:-1]
-
                 tag_content = " ".join(tag)
 
                 article_content = tag_content
@@ -384,21 +362,16 @@ class WebScraper:
             time.sleep(randint(1, 3))
 
         wall_street_journal_content = pd.DataFrame({"href": article_hrefs, "content": article_contents})
-
         wall_street_journal_content = wall_street_journal_content.groupby('href')['content'].apply(
             ' '.join).reset_index()
-
         driver.switch_to.window(original_window)
 
         # driver.close()
 
         wall_street_journal_content = pd.merge(left=df, right=wall_street_journal_content, left_on='href',
                                                right_on='href')
-
         wall_street_journal_content = wall_street_journal_content[['date', 'source', 'href', 'title', 'content']]
-
         wall_street_journal_content = wall_street_journal_content[wall_street_journal_content['content'] != ""]
-
         wall_street_journal_content['date'] = pd.to_datetime(wall_street_journal_content['date'])
 
         return wall_street_journal_content
@@ -415,14 +388,12 @@ class WebScraper:
         while self.start_date <= self.end_date:
             base_url = 'https://www.barrons.com/archive/'
             the_date = pd.to_datetime(self.start_date)
-
             url = base_url + the_date.strftime('%Y/%m/%d')
 
             urls.append(url)
             date.append(the_date)
 
             self.start_date = pd.to_datetime(self.start_date) + timedelta(days=1)
-
             self.start_date = self.start_date.strftime('%Y-%m-%d')
 
             time.sleep(randint(2, 4))
@@ -515,16 +486,12 @@ class WebScraper:
             # driver.switch_to.window(driver.window_handles[0])
 
             driver.get(url)
-
             soup = bs4.BeautifulSoup(driver.page_source, "lxml")
-
             data = soup.find("section", {"class": "css-yfonvn-Container ef4qpkp0"})
 
             try:
                 tag = [x.text for x in data.select("p")]
-
                 tag = tag[:-1]
-
                 tag_content = " ".join(tag)
 
                 article_content = tag_content
@@ -539,17 +506,12 @@ class WebScraper:
             time.sleep(randint(1, 4))
 
         barrons_content = pd.DataFrame({"href": article_hrefs, "content": article_contents})
-
         barrons_content = barrons_content.groupby('href')['content'].apply(' '.join).reset_index()
-
         driver.switch_to.window(original_window)
 
         # driver.close()
-
         barrons_content = pd.merge(left=df, right=barrons_content, left_on='href', right_on='href')
-
         barrons_content = barrons_content[['date', 'source', 'href', 'title', 'content']]
-
         barrons_content['date'] = pd.to_datetime(barrons_content['date'])
 
         return barrons_content
@@ -560,7 +522,6 @@ class WebScraper:
         :return: DataFrame with Source, Date, Article Title and Article URL
         """
         original_start_date = self.start_date
-
         article_dates, article_titles, article_hrefs = [], [], []
 
         while self.start_date <= self.end_date:
@@ -598,9 +559,7 @@ class WebScraper:
 
         fortune_links = pd.DataFrame(
             {"date": article_dates, "source": "Fortune", "href": article_hrefs, "title": article_titles})
-
         fortune_links = fortune_links[fortune_links['href'].str.contains("/well/|/recommends/|/video/") == False]
-
         self.start_date = original_start_date
 
         return fortune_links
@@ -619,27 +578,19 @@ class WebScraper:
         driver = webdriver.Chrome(service=service, options=options)
 
         driver.implicitly_wait(randint(1, 3))
-
         article_contents, article_hrefs = [], []
-
         original_window = driver.current_window_handle
 
         for link in df[colname]:
             url = link
-
             driver.execute_script("window.open('');")
-
             # driver.switch_to.window(driver.window_handles[0])
-
             driver.get(url)
-
             soup = bs4.BeautifulSoup(driver.page_source, "lxml")
-
             data = soup.find("div", {"id": "article-content"})
 
             try:
                 tag = [x.text for x in data.select("p")]
-
                 tag_content = " ".join(tag)
 
                 article_content = tag_content
@@ -654,13 +605,9 @@ class WebScraper:
             time.sleep(randint(1, 3))
 
         fortune_df = pd.DataFrame({"href": article_hrefs, "content": article_contents})
-
         fortune_contents = pd.merge(df, fortune_df, left_on='href', right_on='href')
-
         fortune_contents['date'] = pd.to_datetime(fortune_contents['date'])
-
         driver.switch_to.window(original_window)
-
         #    driver.close()
 
         return fortune_contents
@@ -671,7 +618,6 @@ class WebScraper:
         :return: DataFrame with Source, Date, Article Title and Article URL
         """
         original_start_date = self.start_date
-
         article_dates, article_titles, article_hrefs = [], [], []
 
         if month is None:
@@ -739,27 +685,20 @@ class WebScraper:
         driver = webdriver.Chrome(service=service, options=options)
 
         driver.implicitly_wait(randint(1, 3))
-
         article_contents, article_hrefs = [], []
-
         original_window = driver.current_window_handle
 
         for link in df[colname]:
             url = link
 
             driver.execute_script("window.open('');")
-
             driver.switch_to.window(driver.window_handles[0])
-
             driver.get(url)
-
             soup = bs4.BeautifulSoup(driver.page_source, "lxml")
-
             data = soup.find("div", {"class": "content-lock-content"})
 
             try:
                 tag = [x.text for x in data.select("p")]
-
                 tag_content = ' '.join(tag)
 
                 article_content = tag_content
@@ -774,13 +713,9 @@ class WebScraper:
             time.sleep(randint(1, 2))
 
         business_insider_df = pd.DataFrame({"href": article_hrefs, "content": article_contents})
-
         business_insider_content = pd.merge(df, business_insider_df, left_on='href', right_on='href')
-
         business_insider_content = business_insider_content[business_insider_content['content'] != ""]
-
         business_insider_content['date'] = pd.to_datetime(business_insider_content['date'])
-
         driver.switch_to.window(original_window)
 
         return business_insider_content
@@ -801,9 +736,7 @@ class WebScraper:
         driver = webdriver.Chrome(service=service, options=options)
 
         driver.get(url)
-
         soup = bs4.BeautifulSoup(driver.page_source, "xml")
-
         urls = soup.find_all('url')
 
         for url in urls:
@@ -817,11 +750,8 @@ class WebScraper:
             article_dates.append(date)
 
         information_links = pd.DataFrame({"date": article_dates, "href": article_links, "source": "The Information"})
-
         information_links = information_links[1:]
-
         information_links['date'] = pd.to_datetime(information_links['date'])
-
         information_links = information_links[
             (information_links['date'] >= self.start_date) & (information_links['date'] <= self.end_date)]
 
@@ -887,7 +817,6 @@ class WebScraper:
 
         driver.switch_to.window(original_window)
         # driver.close()
-
         information_content = pd.merge(left=df, right=information_content, left_on='href', right_on='href')
         information_content = information_content[['date', 'source', 'href', 'title', 'content']]
         information_content = information_content[information_content['content'] != ""]
