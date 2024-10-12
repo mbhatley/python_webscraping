@@ -3,19 +3,10 @@ import numpy as np
 from transformers import pipeline
 import spacy
 
-from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
-from sklearn.decomposition import NMF, LatentDirichletAllocation
-from sklearn.metrics.pairwise import cosine_similarity
-
-from fuzzywuzzy import fuzz
-
-# for text pre-processing
 import re
 import nltk
 from nltk.corpus import stopwords
-from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
-from nltk import FreqDist
 
 nltk.download('punkt')
 nltk.download('averaged_perceptron_tagger')
@@ -53,28 +44,35 @@ class CleanScrapedContent:
         :param text: Text to be cleaned
         :return: Cleaned text
         """
-        # Remove new lines, tabs, and non-breaking spaces
-        text = re.sub(r"\n|\t|\xa0", " ", str(text))
+        # Ensure input is a string
+        text = str(text)
 
-        # Remove "Listen x:xx " strings
+        # Remove new lines, tabs, and non-breaking spaces
+        text = re.sub(r"\n|\t|\xa0", " ", text)
+
+        # Remove "Listen x:xx" strings
         text = re.sub(r"Listen \d+:\d+\s?", "", text)
 
-        # Replace numbers with commas
-        text = re.sub(r"\b\d+,", lambda x: x.group().replace(",", ""), text)
+        # Replace numbers with commas (removes commas from numbers)
+        text = re.sub(r"\b\d+,\d+\b", lambda x: x.group().replace(",", ""), text)
 
-        # Replace contractions
-        contractions_pattern = re.compile(r"(\b\w+?(?:'[dtlm]|n't|'s|'ve|'re)\b)", re.IGNORECASE)
+        # Replace contractions with expanded forms
         contractions_dict = {
-            "won't": "will not",
-            "can't": "cannot",
-            "n't": " not",
-            "'s": " is",
-            "'d": " would",
-            "'ll": " will",
-            "'m": " am",
-            "'ve": " have",
-            "'re": " are"
+            "won't": "will not", "can't": "cannot", "i'm": "i am", "he's": "he is", "she's": "she is",
+            "it's": "it is", "we're": "we are", "they're": "they are", "isn't": "is not",
+            "aren't": "are not", "wasn't": "was not", "weren't": "were not", "hasn't": "has not",
+            "haven't": "have not", "hadn't": "had not", "doesn't": "does not", "don't": "do not",
+            "didn't": "did not", "couldn't": "could not", "wouldn't": "would not", "shouldn't": "should not",
+            "mustn't": "must not", "let's": "let us", "i'll": "i will", "you'll": "you will",
+            "he'll": "he will", "she'll": "she will", "we'll": "we will", "they'll": "they will",
+            "i'd": "i would", "you'd": "you would", "he'd": "he would", "she'd": "she would",
+            "we'd": "we would", "they'd": "they would", "i've": "i have", "you've": "you have",
+            "we've": "we have", "they've": "they have", "who's": "who is", "what's": "what is",
+            "where's": "where is", "how's": "how is", "n't": " not", "'s": " is", "'d": " would",
+            "'ll": " will", "'m": " am", "'ve": " have", "'re": " are"
         }
+
+        contractions_pattern = re.compile(r'\b({})\b'.format('|'.join(map(re.escape, contractions_dict.keys()))), re.IGNORECASE)
 
         def replace_contractions(match):
             contraction = match.group(0).lower()
